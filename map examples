@@ -1,0 +1,62 @@
+public class MapPrac1 {
+    
+    public static void mapMethod1(){
+        map<string,string> stringMap = new map<string,string>();
+        stringMap.put('Key1', 'value1');
+        stringMap.put('Key2','value2');
+        
+        //iterate and print values
+        for(string key:stringMap.keyset()){
+            system.debug('values in stringMap are :' +stringMap.get(key)); // will print value 1  value 2
+            system.debug('values in stringMap are :' +stringMap.keyset()); // will print Key1 Key2
+        }
+        
+        // ex 2 - Map of Account = Id, Account
+        map<id,Account> mapAccount = new map<id,Account>([Select id,name from account limit 5]); // if we forget to surround in () it will throw an error
+        
+        for(Id tempKey : mapAccount.keyset()){
+            system.debug('values in mapAccount are : ' + mapAccount.get(tempKey));
+        }
+        
+        //ex 3 - Map of account list 
+        //  Initiliztion issue example 1
+        //  map<id,List<Account>> mapAccount2 = new map<id,List<Account>>([Select id,name from account limit 5]); 
+        
+        // Initiliztion issue example 2
+        // List<Account> accounts = [SELECT Id, Name FROM Account LIMIT 5];
+        // map<string,List<Account>> mapAccount2 = new map<string,List<Account>>(accounts);
+        
+        // Initiliztion issue example 2
+        // map<string,List<Account>> mapAccount3 = new map<string,List<Account>>([SELECT Id, Name FROM Account LIMIT 5]);
+        
+        // Error : Invalid initializer type List<Account> found for Map<Id,List<Account>>: expected a Map with the same key and value types, or a valid SObject List
+         
+        List<Account> accounts = [SELECT Id, Name FROM Account LIMIT 5];
+        Map<String, List<Account>> mapOfAccountList = new Map<String,List<Account>>();
+        
+        mapOfAccountList.put('2 Accounts',new List<Account>{accounts[0], accounts[1]});
+        mapOfAccountList.put('3 Accounts', new List<Account>{accounts[2],accounts[3], accounts[4]});
+        
+        //Print out list of accounts for each key
+        for(String key: mapOfAccountList.keySet()){
+            //Loop through list of accounts for each key
+            for(Account account: mapOfAccountList.get(key)){
+                System.debug('Account inside List: ' + account);
+            }
+        }
+    }
+    
+    // example 3 
+    /* map<String, String> mapstr = new map<String, String>();
+	for (String str: discountSchedule) {
+		mapstr.put(str, str);
+	}
+
+	for (Custom_Package__c cp1 : [select Id, Market__c, state__c,First_Issue__c,Last_Issue__c,
+                                  Circulation__c,Space_Unit__c ,Space_Discount__c, Per_Unit_Open_Rate__c 
+                                  FROM Custom_Package__c 
+                                  WHERE Name IN:mapstr.keyset() order by Name]) {
+                                  // do some thing    
+
+								} */
+}  
