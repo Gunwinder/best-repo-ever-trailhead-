@@ -1,0 +1,20 @@
+ public class IteratingAndRemovingMap {
+    public static void showOnly(){
+        map<string, list<string>> departmentEmployeesMap  = new map<string, list<string>>{
+            'Sales' => new list<string>{'Tman','Raman','Daman'},
+            'Marketing' => new list<string>{'Aman','Raman','Daman'},
+            'HR' => new list<string>{'Rohit','Raman','Daman'}
+        };
+ 	list<string> namesToRemove = new list<string>();
+        for(string key:departmentEmployeesMap.keyset()){
+            //check if Aman exists as a value in keyset, then store the Key 'department' for removal. 
+            if(departmentEmployeesMap.get(key).contains('Aman')){
+            namesToRemove.add(key);    
+            }
+        }
+        for(string temp:namesToRemove){
+            departmentEmployeesMap.remove(temp);
+        }
+        system.debug('@@@@ values :'+departmentEmployeesMap);
+    }
+}
