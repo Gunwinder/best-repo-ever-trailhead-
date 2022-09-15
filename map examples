@@ -128,4 +128,36 @@ public class PracMaps1 {
             System.debug(JSON.serialize(listTotal));
     }
     
+     // count contacts with parent child relationship 
+    
+    public static void countContactsOnAccount (){
+        List<Contact> contactList=[select id,accountid from Contact where accountid!=null];
+        map<Id,List<Contact>> contactMap=new map<Id,List<Contact>>();
+	
+        for(Contact con:contactList){
+            if(contactMap.containsKey(con.accountid)){   
+                // suppose Account "Test" has 2 contacts T1,T2
+                // 1.Initially contactMap is empty It means contactMap.containsKey(con.accountid)=false
+		// 2.it will go into the else part and put in Map, On accountid=> T1 contacts 
+                // new List<Contact>{con} //it means very first time con object is added in the new List and it would be put on the accountId
+                // this is equivallent to List<Contact> contactList=new List<Contact>();
+                // contactList.add(con)
+                // 3.Map Has <Test accountId,List<T1>>
+                // 4.for loop again iterate and this time map is not empty,Map has accountid so it will enter in if condition
+                // a.It will get the List and then Add T2 to the List  contactMap.get(con.AccountId).add(con);
+                // b.Map Has <Test accountId,List<T1,T2>>
+
+                contactMap.get(con.AccountId).add(con);
+                }else{
+                    contactMap.put(con.AccountId,new List<Contact>{con});                
+                }
+                system.debug('values in map WITHOUT loop:' +contactMap);
+            }
+            for (id idKey: contactMap.keyset()){
+                system.debug('values in map :' +contactMap.get(idKey));
+            }
+        }
+    
+}
+    
 }
