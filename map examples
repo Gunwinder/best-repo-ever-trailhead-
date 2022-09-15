@@ -103,4 +103,29 @@ public class PracMaps1 {
 
     }
     
+    //-----------Advanced-----------------//
+    
+    public static void sbojTypeExample(){
+            SObjectType sobType = Account.SObjectType;
+            List<Map<String, Object>> listTotal = new List<Map<String, Object>>();
+            
+            List<String> fields = new List<String>(sobType.getDescribe().fields.getMap().keySet());
+            for(SObject sob : Database.query(
+                ' select ' + String.join(fields, ',')
+                + ' from ' + sobType
+                + ' limit 2'))
+                    {
+                        Map<String,String> mapObj = new Map<String,String>();
+                        for (String field : fields)
+                        {
+                            Object value = sob.get(field);
+                            if(value != null){
+                                mapObj.put(field, String.valueOf(value));
+                            }
+                        }
+                        listTotal.add(mapObj);
+                    }
+            System.debug(JSON.serialize(listTotal));
+    }
+    
 }
