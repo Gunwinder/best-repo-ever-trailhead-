@@ -1,3 +1,7 @@
+
+
+
+//-------------------------[Day 1]-----------------------------------------------//
 public class MapPrac1 {
     
     public static void mapMethod1(){
@@ -60,3 +64,43 @@ public class MapPrac1 {
 
 								} */
 }  
+
+
+//-------------------------[Day 2]-----------------------------------------------//
+public class PracMaps1 {
+
+    public static void mapMethod1(){
+        map<id,Account> mapOfAccounts = new map<Id,Account>([Select id, name from Account WHERE Type='Customer - Direct']);
+        list<Account> accountsToUpdate = new list<Account>();
+        set<Id> accountIdsToUpdate = new set<Id>();
+        
+        //print values in mapOfAccounts
+        for(id idkey:mapOfAccounts.keyset())
+        {
+            system.debug('values in mapOfAccounts are : ' +mapOfAccounts.get(idKey));
+        }
+        
+        // print values of "mapOfAccounts" KeySet
+        for(account acc:accountsToUpdate){
+            system.debug('Ids captured from Map are :' + mapOfAccounts);
+        }
+        // store values of map to list for further processing. 
+        //accountsToUpdate = mapOfAccounts.keyset(); // this will throw error :: Method does not exist or incorrect signature: void key() from the type Map<Id,Account>
+        
+        // use a set to fetch the Ids from Map
+        accountIdsToUpdate = mapOfAccounts.keyset();
+        
+        // run a SOQL from SET and pass to LIST for further processing
+        accountsToUpdate =[SELECT Id, name,Type from Account WHERE Id IN: accountIdsToUpdate];
+        
+        // null check and update accounts : approach 1
+        if(accountsToUpdate.size()>0 && accountsToUpdate!=NULL ){
+            for (account acc:accountsToUpdate){
+                acc.Site = 'Jalandhar City';
+            }
+            Update accountsToUpdate;
+        }
+
+    }
+    
+}
