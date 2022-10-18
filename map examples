@@ -65,6 +65,15 @@ public class MapPrac1 {
 								} */
 }  
 
+// exmpale 4 : extract values from Map to a Set
+set<id> accountIdset = new set<id>();
+map<Id,Account> AccMap = new map<id,Account>([Select id,name from Account Limit  5]);
+
+for(id acc: AccMap.keyset()){
+    accountIdset.add(AccMap.get(acc).id); // extract Ids 
+    system.debug('######## values in the Map are : '+ AccMap.get(acc));
+  //  system.debug('######## IDs in the set are : '+ accountIdset);
+}
 
 //-------------------------[Day 2]-----------------------------------------------//
 public class PracMaps1 {
