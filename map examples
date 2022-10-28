@@ -170,3 +170,74 @@ public class PracMaps1 {
 }
     
 }
+
+----------------------------------Day 2------------------------------------
+
+Rollup Summary : 
+
+trigger CaseUtility on Case (after insert,after delete, after update) {
+// find total number of cases for the related contact and stamps Total_Cases__c
+	
+    
+    if(Trigger.isInsert && Trigger.isAfter){
+        set<id> RelatedContactIdSet = new Set<id>();
+        for(case cList:trigger.new){
+            RelatedContactIdSet.add(cList.ContactId);
+        }
+        // SOQL to find the contact's total Cases
+        List<contact> IdentifiedContacts = [Select Id,Total_Cases__c,(SELECT ID from Cases) from Contact where Id IN:RelatedContactIdSet];
+        
+        for(contact con: IdentifiedContacts){
+            con.Total_Cases__c = con.Cases.size();
+        }
+        UPDATE IdentifiedContacts;
+    }
+    
+        if(Trigger.isdelete && Trigger.isAfter){
+            set<id> RelatedContactIdSet = new Set<id>();
+            for(case cList:trigger.old){
+            RelatedContactIdSet.add(cList.ContactId);
+            }
+         List<contact> IdentifiedContacts = [Select Id,Total_Cases__c,(SELECT ID from Cases) from Contact where Id IN:RelatedContactIdSet];
+            
+            for(contact con: IdentifiedContacts){
+            con.Total_Cases__c = con.Cases.size();
+        }
+         UPDATE IdentifiedContacts;   
+        }
+    
+    // case for reparenting case to another contact.
+    // evaluate both the previous parent and new parent and update the count for both. 
+    if(Trigger.isafter && Trigger.isupdate){
+       set<id> RelatedContactIdSet = new Set<id>();
+        for(case cList: trigger.new){
+            RelatedContactIdSet.add(cList.ContactId); // fetch the updated contact id
+            case oldCase = trigger.oldMap.get(cList.Id); // fetch the case before update
+            RelatedContactIdSet.add(oldCase.ContactId) ; // fetch the Contact Id from the old case and add to Set
+            
+        } 
+        // fetch contacts from Set & add to list for DML 
+        List<contact> IdentifiedContacts = [Select Id,Total_Cases__c,(SELECT ID from Cases) from Contact where Id IN:RelatedContactIdSet];
+        // loop over Identified contacts and update the total count of cases    
+            for(contact con: IdentifiedContacts){
+            con.Total_Cases__c = con.Cases.size();
+        }
+         UPDATE IdentifiedContacts; 
+    }
+    
+    // case for after undelete
+    if(trigger.IsAfter && trigger.IsUndelete){
+        set<id> RelatedContactIdSet = new Set<id>();
+        for(case cList:trigger.new){
+            RelatedContactIdSet.add(cList.ContactId);
+        }
+        // SOQL to find the contact's total Cases
+        List<contact> IdentifiedContacts = [Select Id,Total_Cases__c,(SELECT ID from Cases) from Contact where Id IN:RelatedContactIdSet];
+        
+        for(contact con: IdentifiedContacts){
+            con.Total_Cases__c = con.Cases.size();
+        }
+        UPDATE IdentifiedContacts;
+    }
+}    
+
