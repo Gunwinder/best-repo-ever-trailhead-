@@ -241,3 +241,82 @@ trigger CaseUtility on Case (after insert,after delete, after update) {
     }
 }    
 
+--->> Example 2 : Find Closed tickets <<------
+
+// captures the total tickets which are marked as closed for the contact in question.
+trigger CaseToContactRollUpSummary on Case (after insert, after update,after delete) {
+
+    // -----------------INSERT---------------------------------------
+    if(trigger.isAfter && trigger.isInsert){
+    set<id> conSet = new set<id>(); // set to store the contact Id. 
+    // loop over conact list and fetch the contact id, ideally one at a time from UX
+    for (case cList:Trigger.new){        
+        conSet.add(cList.ContactId);
+    }
+    // now find the closed cases for the contactId from Set
+    list<contact> contLst = [Select Id,Total_Closed_Tickets__c, (select Id from cases WHERE ISCLOSED=TRUE) 
+                             FROM Contact WHERE Id IN:conSet];
+    // loop over the contact
+        for (Contact conListToUpdate: contLst){
+            conListToUpdate.Total_Closed_Tickets__c = conListToUpdate.cases.size();
+        }
+        UPDATE contLst;
+    }
+    
+    // -----------------UPDATE---------------------------------------
+    if(trigger.isAfter && trigger.isUpdate){
+    set<id> conSet = new set<id>(); // set to store the contact Id. 
+    // loop over conact list and fetch the contact id, ideally one at a time from UX
+    for (case cList:Trigger.new){        
+        conSet.add(cList.ContactId);
+    }
+    // now find the closed cases for the contactId from Set
+    list<contact> contLst = [Select Id,Total_Closed_Tickets__c, (select Id from cases WHERE ISCLOSED=TRUE) 
+                             FROM Contact WHERE Id IN:conSet];
+    // loop over the contact
+        for (Contact conListToUpdate: contLst){
+            conListToUpdate.Total_Closed_Tickets__c = conListToUpdate.cases.size();
+        }
+        UPDATE contLst;
+    }
+    
+    // -----------------DELETE---------------------------------------
+    if(trigger.isAfter && trigger.isDelete){
+    set<id> conSet = new set<id>(); // set to store the contact Id. 
+    // loop over conact list and fetch the contact id, ideally one at a time from UX
+    // For Delete Operation we need to fetch old verions of the case, use Trigger.old
+    for (case cList:Trigger.old){        
+        conSet.add(cList.ContactId);
+    }
+        
+    // now find the closed cases for the contactId from Set
+    list<contact> contLst = [Select Id,Total_Closed_Tickets__c, (select Id from cases WHERE ISCLOSED=TRUE) 
+                             FROM Contact WHERE Id IN:conSet];
+    // loop over the contact
+        for (Contact conListToUpdate: contLst){
+            conListToUpdate.Total_Closed_Tickets__c = conListToUpdate.cases.size();
+        }
+        UPDATE contLst;
+    }
+    
+        // -----------------REPARENTING ---------------------------------------
+    if(trigger.isAfter && trigger.isUpdate){
+    set<id> conSet = new set<id>(); // set to store the contact Id. 
+    // loop over conact list and fetch the contact id, ideally one at a time from UX
+    // For Delete Operation we need to fetch old verions of the case, use Trigger.old
+    for (case cList:Trigger.new){        
+        conSet.add(cList.ContactId); // updated contact Id             
+        case OldCase = Trigger.oldMap.get(cList.Id); // fetch the old verion of the case
+        conSet.add(OldCase.contactId); // fetch the contact id from old case identified above
+    }
+  
+    // now find the closed cases for the contactId from Set
+    list<contact> contLst = [Select Id,Total_Closed_Tickets__c, (select Id from cases WHERE ISCLOSED=TRUE) 
+                             FROM Contact WHERE Id IN:conSet];
+    // loop over the contact
+        for (Contact conListToUpdate: contLst){
+            conListToUpdate.Total_Closed_Tickets__c = conListToUpdate.cases.size();
+        }
+        UPDATE contLst;
+    }
+}    
