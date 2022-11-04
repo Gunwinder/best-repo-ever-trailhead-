@@ -320,3 +320,34 @@ trigger CaseToContactRollUpSummary on Case (after insert, after update,after del
         UPDATE contLst;
     }
 }    
+
+
+-------------------------day 3-----------------------------------------
+
+Scenario :: Rollup summary using Maps (use case: only in Trigger && IsInsert context) 
+
+
+trigger prac_Contact2Account on Contact (before insert, before update, after update, after insert) {
+    if(trigger.isafter && trigger.isinsert){
+        
+        map<id,list<contact>> conMap = new map<id,list<contact>>();
+
+           for (Contact con:trigger.new){
+            if(con.accountid!=NULL && conMap.get(con.accountid)==NULL){
+                system.debug('test');
+                conMap.put(con.accountid,new List<contact>()); // intitilized blank list ??
+                conMap.get(con.AccountId).add(con); // this is going to add the contact in execution to the list of map above. 
+                
+            }   
+          }
+        
+        // soql on account 
+          list<account> accList = [Select Id,SSO_User_Count__c from account where Id IN:conMap.keyset()];
+	    // loop over accounts 
+        for(account ac: accList){
+                ac.SSO_User_Count__c=conMap.get(ac.id).size();
+                system.debug('total contacts to update '+conMap.get(ac.id).size());            
+        }
+        update accList;
+    }
+}
