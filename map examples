@@ -351,3 +351,89 @@ trigger prac_Contact2Account on Contact (before insert, before update, after upd
         update accList;
     }
 }
+
+
+-------------------Day 4-------------------------------
+
+Scenario : Use Maps to rollup total open and closed cases. 
+
+GS version 1: Not working. 
+// Trigger should update contact with total tickets : closed and Opened
+trigger Prac_caseUtil on Case (after insert, after delete, after update) {
+map<id,List<case>> caseMap = new map<id,list<case>>();
+    for(case caseObject : trigger.new){
+        if(caseObject.contactid !=NULL && caseMap.get(caseObject.contactid)==NULL){
+            caseMap.put(caseObject.contactid,new LIST<case>()); //initilized with empty list           
+            caseMap.get(caseObject.contactid).add(caseObject); // passed to list.
+        }
+    }
+    // SOQL 
+    LIST<contact> conListToUpdateOpen = [SELECT Id,Total_Open_Tickets__c,Total_Closed_Tickets__c,(SELECT ID FROM Cases WHERE IsClosed=FALSE) 
+                                     FROM CONTACT 
+                                     WHERE ID IN:caseMap.keySet()];
+    system.debug('###### Id in list' +conListToUpdateOpen);
+    
+   LIST<contact> conListToUpdateClosed = [SELECT Id,Total_Open_Tickets__c,Total_Closed_Tickets__c,(SELECT ID FROM Cases WHERE IsClosed=TRUE) 
+                                     FROM CONTACT 
+                                     WHERE ID IN:caseMap.keySet()];
+    system.debug('###### Id in list' +conListToUpdateClosed);
+    
+
+    for(contact c:conListToUpdateOpen){
+        c.Total_Open_Tickets__c = conListToUpdateOpen.size();
+        system.debug('###### open tickets' + caseMap.get(c.id).size());
+    }
+
+    for(contact c:conListToUpdateClosed){
+        c.Total_Closed_Tickets__c = caseMap.get(c.id).size();
+        system.debug('###### closed tickets' + caseMap.get(c.id).size());
+    }
+    
+    if(conListToUpdateOpen.size()>0 || conListToUpdateClosed.size()>0){
+     update conListToUpdateOpen;
+     update conListToUpdateClosed;  
+    }
+}
+
+######################################################
+Community help: 
+
+trigger Prac_caseUtil on Case (after insert, after update, after delete) { 
+    
+    Set<Id> idContactSet = new Set<Id>();
+	List<Case> newList = trigger.isDelete ? trigger.old : trigger.new;
+    List<Contact> contactListToUpdate = new List<Contact>();
+    
+    for(case caseObject : newList){
+        if((trigger.oldMap == null || trigger.new == null || (trigger.oldMap != null && caseObject.Status != trigger.oldMap.get(caseObject.Id).Status))
+           	&& !String.isBlank(caseObject.ContactId))
+			idContactSet.add(caseObject.ContactId);        
+    }
+    
+    // SOQL 
+    Map<Id, contact> conMapToUpdateOpen = new  Map<Id, contact>([SELECT Id,Total_Open_Tickets__c,Total_Closed_Tickets__c,(SELECT ID FROM Cases WHERE IsClosed=FALSE) 
+                                     FROM CONTACT 
+                                     WHERE ID IN:idContactSet]);
+    
+    Map<Id, contact> conMapToUpdateClosed = new Map<Id, contact>([SELECT Id,Total_Open_Tickets__c,Total_Closed_Tickets__c,(SELECT ID FROM Cases WHERE IsClosed=TRUE) 
+                                     FROM CONTACT 
+                                     WHERE ID IN:idContactSet]);
+    
+
+    for(Id id : idContactSet){
+     
+        Contact contactRec = new Contact(Id = id);
+        contactRec.Total_Open_Tickets__c = 0;
+        contactRec.Total_Closed_Tickets__c = 0;
+        
+        if(conMapToUpdateOpen.get(id).Cases != null && conMapToUpdateOpen.get(id).Cases.size() > 0)
+            contactRec.Total_Open_Tickets__c = conMapToUpdateOpen.get(id).Cases.size();
+        
+        if(conMapToUpdateClosed.get(id).Cases != null && conMapToUpdateClosed.get(id).Cases.size() > 0)
+            contactRec.Total_Closed_Tickets__c = conMapToUpdateClosed.get(id).Cases.size();
+        
+        contactListToUpdate.add(contactRec);
+    }
+    
+    Database.update(contactListToUpdate);
+}
