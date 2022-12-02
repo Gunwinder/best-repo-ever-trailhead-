@@ -1,0 +1,72 @@
+// --- DAY 1 --- 
+
+/* https://trailhead.salesforce.com/content/learn/modules/asynchronous_apex/async_apex_scheduled?trailmix_creator_id=strailhead&trailmix_slug=prepare-for-your-salesforce-platform-developer-i-credential*/
+
+public class DailyLeadProcessor implements Schedulable{
+        public void execute(SchedulableContext ctx) {
+        //some code to execute
+        list<lead> masterLeads = new list<lead>();
+        list<lead> targetLeads = [SELECT Id,LeadSource  from LEAD WHERE LeadSource =null LIMIT 200];
+            if(targetLeads.size()>0){
+                for (lead tempLead: targetLeads){
+                    tempLead.LeadSource='Dreamforce';
+                    masterLeads.add(tempLead);
+                }
+                update masterLeads;
+            }    
+    }
+}
+
+/* TEST CLASS */
+@isTest
+public class DailyLeadProcessorTest {
+    
+     /*[1] seconds 
+     * [2] mins 
+     * [3] hours 
+     * [4] day_of_month 
+     * [5] Month Day of Week
+     * [6] Year 
+     "*" = all values | "?" = No value
+    */
+    private static string CRON_EXP = '0 0 0 ?* * *'; //12 am daily
+    // create dummy data 
+    @isTest
+ 
+    private static void testpopulateData(){
+    LIST<lead> dummyLeadData = new LIST<lead>();
+   
+    for(integer i=0;i<500;i++){
+        if (i<250){
+         lead tempRecord=new lead();
+        tempRecord.Lastname='TestLead'+i;
+        tempRecord.LeadSource='Other';
+        tempRecord.company='Salesforce';
+        dummyLeadData.add(tempRecord);    
+        } else{
+        lead tempRecord=new lead();
+        tempRecord.Lastname='TestLead'+i;        
+        tempRecord.company='Salesforce';
+        dummyLeadData.add(tempRecord);  
+        }
+
+      }
+        insert dummyLeadData;
+        
+       //peform tests now
+    
+        test.startTest();
+        string jobId = system.Schedule('Process Leads',CRON_EXP,new DailyLeadProcessor());
+        //system.schedule(jobName, cronExp, schedulable)
+        test.stopTest();
+        
+        // check data 
+        list<lead> leadCheck = [SELECT Id, LeadSource from LEAD WHERE LeadSource ='Dreamforce'];
+        system.debug('#### Count of Leads inserted with Dreamforce value :'+ leadCheck.size());
+        system.assertEquals(200, leadCheck.size(),'Atleast 1 record did not update successfully');
+    }
+    
+
+
+
+}
