@@ -1,0 +1,46 @@
+/*
+@Original author : Bonny Hinners
+@description : Test class for creating test data in silo
+*/
+
+@isTest
+public class TestSetupData(){
+  Test.loadData(Account.sObjetType,'Account');
+  Test.loadData(Contact.sObjetType,'Contact');
+}
+
+public static void createAccConAddressless(){
+  Test.loadData(Account.sObjetType,'Account');
+  Test.loadData(Contact.sObjetType,'Contact');
+}
+
+
+=====================
+
+/*
+@Original author : Bonny Hinners
+@description : Test class for creating test data in silo
+*/
+
+
+@isTest
+public class testAddressUpdates{
+
+@testSetup
+static void ACsetup(){
+testSetupData.createAccConAddressless();
+}
+
+@isTest
+static void ACtest(){
+system.assert([SELECT COUNT() FROM Account]>0,'Accounts must be addded');
+system.assert([SELECT COUNT() FROM Contact]>0,'Contacts must be addded');
+}
+
+@isTest
+static void ACprocess(){
+system.assert([SELECT Account.Name FROM Contact LIMIT 1].Account.Name!=null);
+system.assert([SELECT COUNT() FROM Contact WHERE MailingStreet = null]==0,'Contacts may not have blank addresses');
+}
+
+}
